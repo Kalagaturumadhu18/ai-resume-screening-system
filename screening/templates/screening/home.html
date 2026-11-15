@@ -1,0 +1,56 @@
+{% extends "screening/base.html" %}
+{% block title %}Screen resumes | ResumeLens{% endblock %}
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">SMARTER FIRST-PASS REVIEW</p>
+        <h1>Find relevant skills.<br><span>Understand the match.</span></h1>
+        <p class="hero-copy">Compare PDF resume text with a job description, inspect detected skills, and review ranked results in one place.</p>
+    </div>
+    <div class="hero-art" aria-hidden="true"><div class="doc">PDF</div><div class="spark">✦</div><div class="score-ring">AI<br><small>match</small></div></div>
+</section>
+
+<section class="panel">
+    <div class="section-heading">
+        <div><p class="eyebrow">NEW SCREENING</p><h2>Start a candidate review</h2></div>
+        <span class="step-pill">01 / Upload &amp; compare</span>
+    </div>
+    <form method="post" action="{% url 'screening:screen' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="field">
+            <label for="{{ form.role_title.id_for_label }}">Job role</label>
+            {{ form.role_title }}
+            {{ form.role_title.errors }}
+        </div>
+        <div class="field">
+            <label for="{{ form.job_description.id_for_label }}">Job description</label>
+            {{ form.job_description }}
+            <small>Include the responsibilities and skills you want to compare.</small>
+            {{ form.job_description.errors }}
+        </div>
+        <div class="field">
+            <label for="id_resumes">Upload PDF resumes</label>
+            <input id="id_resumes" type="file" name="resumes" accept=".pdf,application/pdf" multiple required>
+            <small>Up to 20 PDF files, maximum 5 MB each. Text-based PDFs only; scanned PDFs need OCR.</small>
+            {{ form.resumes.errors }}
+        </div>
+        <button class="button" type="submit">Screen resumes <span>→</span></button>
+    </form>
+    <p class="disclaimer"><strong>Responsible use:</strong> Scores measure text similarity only. They are not a prediction of job performance. Review original resumes and make decisions with human judgment.</p>
+</section>
+
+{% if recent_sessions %}
+<section class="recent">
+    <div class="section-heading"><div><p class="eyebrow">YOUR WORKSPACE</p><h2>Recent screening sessions</h2></div></div>
+    <div class="session-list">
+        {% for session in recent_sessions %}
+        <a class="session-row" href="{% url 'screening:results' session.id %}">
+            <span><strong>{{ session.role_title }}</strong><small>{{ session.created_at|date:"d M Y, H:i" }}</small></span>
+            <span class="session-count">{{ session.candidates.count }} resumes <b>→</b></span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

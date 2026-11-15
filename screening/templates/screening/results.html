@@ -1,0 +1,36 @@
+{% extends "screening/base.html" %}
+{% block title %}Screening results | ResumeLens{% endblock %}
+{% block content %}
+<div class="results-top">
+    <div><a class="back-link" href="{% url 'screening:home' %}">← New screening</a><p class="eyebrow">SCREENING REPORT</p><h1>{{ session.role_title }}</h1><p class="muted">Created {{ session.created_at|date:"d M Y, H:i" }}</p></div>
+    <a class="button button-secondary" href="{% url 'screening:export_csv' session.id %}">Download CSV ↓</a>
+</div>
+<div class="summary-grid">
+    <div class="summary-card"><span>Resumes processed</span><strong>{{ candidates|length }}</strong></div>
+    <div class="summary-card"><span>Highest text similarity</span><strong>{% if candidates %}{{ candidates.0.match_score|floatformat:1 }}%{% else %}—{% endif %}</strong></div>
+    <div class="summary-card"><span>Role</span><strong class="role-value">{{ session.role_title }}</strong></div>
+</div>
+<section class="panel">
+    <div class="section-heading"><div><p class="eyebrow">CANDIDATE COMPARISON</p><h2>Ranked results</h2></div><span class="step-pill">Highest similarity first</span></div>
+    {% for candidate in candidates %}
+    <article class="candidate">
+        <div class="candidate-head">
+            <div class="candidate-name"><span class="rank">{{ forloop.counter|stringformat:"02d" }}</span><div><h3>{{ candidate.resume_name }}</h3><small>PDF resume · screened in this session</small></div></div>
+            <div class="score"><strong>{{ candidate.match_score|floatformat:1 }}%</strong><span>text similarity</span></div>
+        </div>
+        <div class="meter"><span style="width: {{ candidate.match_score }}%"></span></div>
+        <div class="skill-columns">
+            <div><h4>Detected matching skills <span class="count">{{ candidate.matched_skills|length }}</span></h4>
+                <div class="chips">{% for skill in candidate.matched_skills %}<span class="chip chip-good">{{ skill }}</span>{% empty %}<span class="muted">No listed skills detected.</span>{% endfor %}</div>
+            </div>
+            <div><h4>Job skills not detected <span class="count">{{ candidate.missing_skills|length }}</span></h4>
+                <div class="chips">{% for skill in candidate.missing_skills %}<span class="chip chip-missing">{{ skill }}</span>{% empty %}<span class="muted">All listed job skills were detected.</span>{% endfor %}</div>
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <p class="muted">No candidates are available for this session.</p>
+    {% endfor %}
+</section>
+<p class="disclaimer"><strong>How to interpret:</strong> TF-IDF/cosine similarity compares the wording in the job description and resume. A higher score does not prove a candidate is more qualified. Skill detection uses a starter keyword list and may miss synonyms or context. Always review resumes manually.</p>
+{% endblock %}
